@@ -293,3 +293,4 @@ const token = await Notifications.getExpoPushTokenAsync()
 
 *Built as a production-minded MVP — Wraptors Inc. v1.0.0*
 # Wraptors-inc.-App
+# Wraptors-Inc.-App
