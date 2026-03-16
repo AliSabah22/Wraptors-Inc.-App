@@ -4,3 +4,21 @@
 
 expo-env.d.ts
 # @end expo-cli
+
+# Dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+
+# Native
+ios/
+android/
+
+# Misc
+.DS_Store
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*

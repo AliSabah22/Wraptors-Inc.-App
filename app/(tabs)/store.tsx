@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  FlatList,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
@@ -12,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
 import { GoldDivider } from '@/components/ui/GoldDivider';
-import { Badge } from '@/components/ui/Badge';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useCartStore } from '@/store/cartStore';
 import { MOCK_PRODUCTS } from '@/data/mockData';

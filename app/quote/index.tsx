@@ -5,7 +5,6 @@ import {
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
@@ -33,7 +32,7 @@ const SERVICE_CATEGORIES: { label: string; value: ServiceCategory }[] = [
 export default function QuoteScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ service?: string }>();
-  const { user, isGuest } = useAuthStore();
+  const { user } = useAuthStore();
   const { submitQuote, isSubmitting } = useQuoteStore();
 
   const [form, setForm] = useState({
@@ -239,7 +238,7 @@ export default function QuoteScreen() {
           <TouchableOpacity style={styles.attachBtn}>
             <Ionicons name="camera-outline" size={18} color={Colors.textMuted} />
             <Text style={styles.attachText}>Attach Photos (Optional)</Text>
-            <Text style={styles.attachHint}>Coming in v2 with real upload</Text>
+            <Ionicons name="chevron-forward" size={14} color={Colors.textDisabled} />
           </TouchableOpacity>
 
           <Button
@@ -340,10 +339,6 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.textMuted,
     fontSize: Typography.sm,
-  },
-  attachHint: {
-    color: Colors.textDisabled,
-    fontSize: Typography.xs,
   },
   disclaimer: {
     color: Colors.textDisabled,

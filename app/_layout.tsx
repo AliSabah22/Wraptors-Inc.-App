@@ -9,6 +9,8 @@ import { Colors } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 import { useCartStore } from '@/store/cartStore';
 import { useQuoteStore } from '@/store/quoteStore';
+import { useNotificationStore } from '@/store/notificationStore';
+import { NotificationToast } from '@/components/ui/NotificationToast';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -20,6 +22,8 @@ export default function RootLayout() {
   const loadSession = useAuthStore((s) => s.loadSession);
   const loadCart = useCartStore((s) => s.loadCart);
   const loadQuotes = useQuoteStore((s) => s.loadQuotes);
+  const { loadNotifications } = useNotificationStore();
+  const user = useAuthStore((s) => s.user);
 
   useEffect(() => {
     const init = async () => {
@@ -30,6 +34,10 @@ export default function RootLayout() {
     };
     init();
   }, [fontsLoaded]);
+
+  useEffect(() => {
+    if (user?.id) loadNotifications(user.id);
+  }, [user?.id]);
 
   if (!fontsLoaded) return null;
 
@@ -60,7 +68,9 @@ export default function RootLayout() {
           <Stack.Screen name="members/index" />
           <Stack.Screen name="contact/index" />
           <Stack.Screen name="staff/index" />
+          <Stack.Screen name="notifications/index" />
         </Stack>
+        <NotificationToast />
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

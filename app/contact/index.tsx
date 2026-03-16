@@ -27,14 +27,25 @@ export default function ContactScreen() {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [sent, setSent] = useState(false);
+  const [isSending, setIsSending] = useState(false);
 
   const handleCall = () => Linking.openURL('tel:+15559010011');
   const handleEmail = () => Linking.openURL('mailto:hello@wraptorsinc.com');
   const handleAddress = () => Linking.openURL('https://maps.apple.com/?q=Wraptors+Inc');
+  const handleSocial = (platform: string) => {
+    const urls: Record<string, string> = {
+      instagram: 'https://instagram.com/wraptorsinc',
+      facebook: 'https://facebook.com/wraptorsinc',
+      youtube: 'https://youtube.com/@wraptorsinc',
+    };
+    if (urls[platform]) Linking.openURL(urls[platform]);
+  };
 
   const handleSend = async () => {
     if (!name.trim() || !message.trim()) return;
+    setIsSending(true);
     await new Promise((r) => setTimeout(r, 600));
+    setIsSending(false);
     setSent(true);
     setName('');
     setEmail('');
@@ -90,13 +101,13 @@ export default function ContactScreen() {
           </TouchableOpacity>
 
           {/* Map placeholder */}
-          <View style={styles.mapPlaceholder}>
+          <TouchableOpacity style={styles.mapPlaceholder} onPress={handleAddress} activeOpacity={0.85}>
             <Ionicons name="map-outline" size={36} color={Colors.textMuted} />
-            <Text style={styles.mapText}>Interactive map coming in v2</Text>
-            <TouchableOpacity style={styles.mapBtn} onPress={handleAddress}>
-              <Text style={styles.mapBtnText}>Open in Maps</Text>
-            </TouchableOpacity>
-          </View>
+            <Text style={styles.mapText}>4850 West Performance Blvd, LA</Text>
+            <View style={styles.mapBtn}>
+              <Text style={styles.mapBtnText}>Open in Maps →</Text>
+            </View>
+          </TouchableOpacity>
 
           <GoldDivider />
 
@@ -157,6 +168,7 @@ export default function ContactScreen() {
             <Button
               label="Send Message"
               onPress={handleSend}
+              loading={isSending}
               disabled={!name.trim() || !message.trim()}
             />
           </View>
@@ -166,11 +178,11 @@ export default function ContactScreen() {
             <Text style={styles.socialTitle}>Follow Us</Text>
             <View style={styles.socialRow}>
               {[
-                { icon: 'logo-instagram' as const, label: '@wraptorsinc' },
-                { icon: 'logo-facebook' as const, label: 'Wraptors Inc.' },
-                { icon: 'logo-youtube' as const, label: 'Wraptors Inc.' },
+                { icon: 'logo-instagram' as const, label: '@wraptorsinc', platform: 'instagram' },
+                { icon: 'logo-facebook' as const, label: 'Wraptors Inc.', platform: 'facebook' },
+                { icon: 'logo-youtube' as const, label: 'Wraptors Inc.', platform: 'youtube' },
               ].map((s) => (
-                <TouchableOpacity key={s.icon} style={styles.socialBtn}>
+                <TouchableOpacity key={s.icon} style={styles.socialBtn} onPress={() => handleSocial(s.platform)}>
                   <Ionicons name={s.icon} size={18} color={Colors.gold} />
                   <Text style={styles.socialLabel}>{s.label}</Text>
                 </TouchableOpacity>

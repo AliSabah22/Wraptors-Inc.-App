@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -19,7 +20,7 @@ import { MembershipBadge } from '@/components/ui/MembershipBadge';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { useMembershipAccess } from '@/hooks/useMembershipAccess';
-import { MOCK_MEMBERSHIP_PLANS } from '@/data/mockData';
+import { MOCK_MEMBERSHIP_PLANS, MOCK_SERVICE_HISTORY } from '@/data/mockData';
 import { Vehicle } from '@/types';
 
 export default function ProfileScreen() {
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const { user, isGuest, isAuthenticated, updateUser, logout } = useAuthStore();
   const { tier } = useMembershipAccess();
+  const servicesDone = MOCK_SERVICE_HISTORY.filter((h) => h.userId === user?.id).length;
   const nextPlan = MOCK_MEMBERSHIP_PLANS.find((p) =>
     p.tier === (tier === 'standard' ? 'gold' : tier === 'gold' ? 'platinum' : null)
   );
@@ -47,6 +49,29 @@ export default function ProfileScreen() {
         },
       ]
     );
+  };
+
+  const handleAddVehicle = () => {
+    Alert.alert(
+      'Add Vehicle',
+      'Vehicle management will be available in the next update. Contact us to add a vehicle to your account.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Contact Us', onPress: () => router.push('/contact/' as any) },
+      ]
+    );
+  };
+
+  const handleSettings = () => {
+    Alert.alert(
+      'Settings',
+      'Account settings will be available in the next update.',
+      [{ text: 'OK' }]
+    );
+  };
+
+  const handleTerms = () => {
+    Linking.openURL('https://wraptorsinc.com/terms').catch(() => {});
   };
 
   const toggleNotif = (key: keyof NonNullable<typeof user>['notificationPreferences']) => {
@@ -82,7 +107,7 @@ export default function ProfileScreen() {
     <View style={[styles.container, { paddingTop: insets.top }]}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity style={styles.settingsBtn} hitSlop={8}>
+        <TouchableOpacity style={styles.settingsBtn} hitSlop={8} onPress={handleSettings}>
           <Ionicons name="settings-outline" size={20} color={Colors.textMuted} />
         </TouchableOpacity>
       </View>
@@ -127,7 +152,7 @@ export default function ProfileScreen() {
             <Text style={styles.statLabel}>Vehicles</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.statCard} onPress={() => router.push('/history/')}>
-            <Text style={styles.statValue}>3</Text>
+            <Text style={styles.statValue}>{servicesDone}</Text>
             <Text style={styles.statLabel}>Services Done</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.statCard} onPress={() => router.push('/members/' as any)}>
@@ -140,7 +165,7 @@ export default function ProfileScreen() {
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>My Vehicles</Text>
-            <TouchableOpacity style={styles.addVehicleBtn}>
+            <TouchableOpacity style={styles.addVehicleBtn} onPress={handleAddVehicle}>
               <Ionicons name="add" size={16} color={Colors.gold} />
               <Text style={styles.addVehicleText}>Add</Text>
             </TouchableOpacity>
@@ -192,7 +217,7 @@ export default function ProfileScreen() {
             <ActionRow icon="time-outline" label="Service History" onPress={() => router.push('/history/')} />
             <ActionRow icon="star-outline" label="Members Perks" onPress={() => router.push('/members/' as any)} />
             <ActionRow icon="help-circle-outline" label="Contact Support" onPress={() => router.push('/contact/' as any)} />
-            <ActionRow icon="document-text-outline" label="Terms & Privacy" onPress={() => {}} />
+            <ActionRow icon="document-text-outline" label="Terms & Privacy" onPress={handleTerms} />
           </View>
         </View>
 

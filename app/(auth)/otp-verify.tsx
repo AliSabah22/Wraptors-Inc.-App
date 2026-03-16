@@ -29,7 +29,7 @@ export default function OTPVerifyScreen() {
   const [error, setError] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
   const inputRef = useRef<TextInput>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval>>();
+  const timerRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
 
   useEffect(() => {
     // Start resend countdown

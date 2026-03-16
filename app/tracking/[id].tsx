@@ -17,7 +17,7 @@ export default function TrackingDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuthStore();
-  const { activeJobs, loadJobs, getJobById } = useServiceStore();
+  const { activeJobs, isLoading, loadJobs, getJobById } = useServiceStore();
 
   useEffect(() => {
     if (user?.id && activeJobs.length === 0) {
@@ -27,13 +27,25 @@ export default function TrackingDetailScreen() {
 
   const job = getJobById(id ?? '');
 
+  if (isLoading && !job) {
+    return (
+      <View style={styles.container}>
+        <ScreenHeader title="Service Details" />
+        <View style={styles.notFound}>
+          <Ionicons name="hourglass-outline" size={48} color={Colors.textMuted} />
+          <Text style={styles.notFoundText}>Loading service details…</Text>
+        </View>
+      </View>
+    );
+  }
+
   if (!job) {
     return (
       <View style={styles.container}>
         <ScreenHeader title="Service Details" />
         <View style={styles.notFound}>
           <Ionicons name="alert-circle-outline" size={48} color={Colors.textMuted} />
-          <Text style={styles.notFoundText}>Job not found</Text>
+          <Text style={styles.notFoundText}>Service not found</Text>
         </View>
       </View>
     );

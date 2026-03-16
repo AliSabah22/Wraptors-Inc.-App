@@ -213,7 +213,14 @@ export interface MembershipPlan {
 
 // ─── Notification ─────────────────────────────────────────────────────────────
 
-export type NotificationType = 'service_update' | 'promotion' | 'news' | 'emergency';
+export type NotificationType =
+  | 'service_update'
+  | 'promotion'
+  | 'news'
+  | 'emergency'
+  | 'recommendation'
+  | 'quote'
+  | 'media';
 
 export interface NotificationItem {
   id: string;
@@ -224,6 +231,12 @@ export interface NotificationItem {
   read: boolean;
   createdAt: string;
   linkTo?: string;
+  ctaLabel?: string;
+  metadata?: {
+    jobId?: string;
+    productId?: string;
+    vehicleId?: string;
+  };
 }
 
 // ─── Service History ─────────────────────────────────────────────────────────

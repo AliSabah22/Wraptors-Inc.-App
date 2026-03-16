@@ -14,6 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors, Typography, Spacing, Radius, GradientColors } from '@/constants/theme';
 import { useAuthStore } from '@/store/authStore';
 import { useServiceStore } from '@/store/serviceStore';
+import { useNotificationStore } from '@/store/notificationStore';
 import { SectionHeader } from '@/components/ui/SectionHeader';
 import { ActiveServiceCard } from '@/components/home/ActiveServiceCard';
 import { GoldDivider } from '@/components/ui/GoldDivider';
@@ -40,11 +41,20 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { user, isGuest } = useAuthStore();
   const { activeJobs, loadJobs } = useServiceStore();
+  const { notifications, loadNotifications, unreadCount } = useNotificationStore();
   const isStandardMember = !isGuest && user?.membershipTier === 'standard';
 
   useEffect(() => {
-    if (user?.id) loadJobs(user.id);
+    if (user?.id) {
+      loadJobs(user.id);
+      loadNotifications(user.id);
+    }
   }, [user?.id]);
+
+  const notifUnread = unreadCount();
+  const recommendations = notifications
+    .filter((n) => n.type === 'recommendation' && !n.read)
+    .slice(0, 3);
 
   const displayName = isGuest ? 'Guest' : user?.name?.split(' ')[0] ?? 'Member';
   const featuredNews = MOCK_NEWS.filter((n) => n.featured).slice(0, 2);
@@ -76,10 +86,16 @@ export default function HomeScreen() {
             <View style={styles.heroActions}>
               <TouchableOpacity
                 style={styles.notifBtn}
-                onPress={() => router.push('/contact/' as any)}
+                onPress={() => router.push('/notifications/' as any)}
               >
                 <Ionicons name="notifications-outline" size={22} color={Colors.textSecondary} />
-                <View style={styles.notifDot} />
+                {notifUnread > 0 && (
+                  <View style={styles.notifBadge}>
+                    <Text style={styles.notifBadgeText}>
+                      {notifUnread > 9 ? '9+' : notifUnread}
+                    </Text>
+                  </View>
+                )}
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.staffBtn}
@@ -169,6 +185,42 @@ export default function HomeScreen() {
               ))}
             </View>
           </View>
+
+          {/* Recommended for You */}
+          {recommendations.length > 0 && (
+            <View style={styles.section}>
+              <SectionHeader
+                title="Recommended for You"
+                actionLabel="View All"
+                onAction={() => router.push('/notifications/' as any)}
+              />
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.recoScroll}
+              >
+                {recommendations.map((notif) => (
+                  <TouchableOpacity
+                    key={notif.id}
+                    style={styles.recoCard}
+                    activeOpacity={0.82}
+                    onPress={() => router.push((notif.linkTo ?? '/notifications/') as any)}
+                  >
+                    <View style={styles.recoIconWrap}>
+                      <Ionicons name="sparkles-outline" size={20} color={Colors.gold} />
+                    </View>
+                    <Text style={styles.recoTitle} numberOfLines={2}>{notif.title}</Text>
+                    <Text style={styles.recoBody} numberOfLines={2}>{notif.body}</Text>
+                    {notif.ctaLabel && (
+                      <View style={styles.recoCta}>
+                        <Text style={styles.recoCtaText}>{notif.ctaLabel} →</Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          )}
 
           {/* Featured news */}
           <View style={styles.section}>
@@ -283,14 +335,22 @@ const styles = StyleSheet.create({
     position: 'relative',
     padding: Spacing.xs,
   },
-  notifDot: {
+  notifBadge: {
     position: 'absolute',
-    top: 6,
-    right: 6,
-    width: 7,
-    height: 7,
-    borderRadius: 3.5,
+    top: 2,
+    right: 2,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
     backgroundColor: Colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  notifBadgeText: {
+    color: Colors.background,
+    fontSize: 9,
+    fontWeight: Typography.bold,
   },
   staffBtn: {
     padding: Spacing.xs,
@@ -482,5 +542,54 @@ const styles = StyleSheet.create({
     fontSize: Typography.xs,
     letterSpacing: Typography.wide,
     textAlign: 'center',
+  },
+  recoScroll: {
+    gap: Spacing.sm,
+    paddingRight: Spacing.base,
+  },
+  recoCard: {
+    width: 200,
+    backgroundColor: Colors.backgroundCard,
+    borderRadius: Radius.lg,
+    padding: Spacing.base,
+    borderWidth: 1,
+    borderColor: Colors.goldBorder,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.gold,
+    gap: 6,
+  },
+  recoIconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Colors.goldMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  recoTitle: {
+    color: Colors.textPrimary,
+    fontSize: Typography.sm,
+    fontWeight: Typography.semibold,
+    lineHeight: 17,
+  },
+  recoBody: {
+    color: Colors.textMuted,
+    fontSize: Typography.xs,
+    lineHeight: 16,
+  },
+  recoCta: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    borderColor: Colors.goldBorder,
+    backgroundColor: Colors.goldMuted,
+    marginTop: 2,
+  },
+  recoCtaText: {
+    color: Colors.gold,
+    fontSize: 11,
+    fontWeight: Typography.semibold,
   },
 });

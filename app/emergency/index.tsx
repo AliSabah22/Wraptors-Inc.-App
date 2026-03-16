@@ -19,7 +19,6 @@ import { Button } from '@/components/ui/Button';
 import { GoldDivider } from '@/components/ui/GoldDivider';
 import { useAuthStore } from '@/store/authStore';
 import { IssueType } from '@/types';
-import { generateId } from '@/utils/helpers';
 
 const ISSUE_TYPES: { label: string; value: IssueType; icon: keyof typeof Ionicons.glyphMap }[] = [
   { label: 'Wrap Damage', value: 'wrap_damage', icon: 'alert-outline' },
@@ -40,6 +39,7 @@ export default function EmergencyScreen() {
   const [contactPhone, setContactPhone] = useState(user?.phone ?? '');
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleCall = () => {
     Linking.openURL(`tel:${EMERGENCY_PHONE}`);
@@ -57,8 +57,10 @@ export default function EmergencyScreen() {
 
   const handleSubmit = async () => {
     if (!validate()) return;
+    setIsSubmitting(true);
     // FUTURE: POST to emergency endpoint / Supabase
     await new Promise((r) => setTimeout(r, 800));
+    setIsSubmitting(false);
     setSubmitted(true);
   };
 
@@ -202,6 +204,7 @@ export default function EmergencyScreen() {
           <Button
             label="Submit Emergency Request"
             onPress={handleSubmit}
+            loading={isSubmitting}
             size="lg"
             style={{ marginTop: Spacing.sm }}
           />
