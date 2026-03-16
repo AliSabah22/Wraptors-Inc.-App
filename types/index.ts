@@ -127,7 +127,7 @@ export interface QuoteRequest {
   email: string;
   phone: string;
   vehicleInfo: string;
-  serviceCategory: ServiceCategory;
+  serviceCategories: ServiceCategory[];
   serviceDetails: string;
   additionalInfo?: string;
   imageUris: string[];

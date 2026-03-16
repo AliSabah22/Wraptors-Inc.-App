@@ -31,7 +31,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
   },
   titleGroup: {
     flexDirection: 'row',
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   },
   accent: {
     width: 3,
-    height: 18,
+    height: 20,
     borderRadius: 2,
     backgroundColor: Colors.gold,
   },
@@ -53,7 +53,8 @@ const styles = StyleSheet.create({
   actionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 2,
+    gap: 3,
+    paddingVertical: 4,
   },
   action: {
     color: Colors.gold,

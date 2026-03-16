@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.base,
   },
   gradient: {
-    padding: Spacing.base,
+    padding: Spacing.lg,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -134,23 +134,24 @@ const styles = StyleSheet.create({
   },
   vehicleName: {
     color: Colors.textPrimary,
-    fontSize: Typography.lg,
+    fontSize: Typography.xl,
     fontWeight: Typography.bold,
-    marginBottom: 2,
+    marginBottom: 3,
+    lineHeight: 26,
   },
   serviceType: {
     color: Colors.textSecondary,
     fontSize: Typography.sm,
-    marginBottom: Spacing.base,
+    marginBottom: Spacing.lg,
   },
   progressSection: {
-    marginBottom: Spacing.md,
+    marginBottom: Spacing.base,
   },
   stageRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: Spacing.sm,
+    marginBottom: Spacing.md,
   },
   stageInfo: {
     flexDirection: 'row',

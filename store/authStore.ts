@@ -26,6 +26,8 @@ interface AuthState {
   // Actions
   requestOtp: (phone: string) => Promise<void>;
   verifyOtp: (code: string) => Promise<boolean>;
+  loginWithEmail: (email: string, password: string) => Promise<boolean>;
+  loginWithSocial: (provider: 'google' | 'apple') => Promise<void>;
   continueAsGuest: () => void;
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
@@ -61,6 +63,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
     set({ isLoading: false });
     return false;
+  },
+
+  loginWithEmail: async (email: string, _password: string) => {
+    set({ isLoading: true });
+    // FUTURE: validate credentials against Supabase Auth
+    await new Promise((r) => setTimeout(r, 1200));
+    const user = { ...MOCK_USER, email };
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
+    set({ user, isGuest: false, isAuthenticated: true, isLoading: false });
+    return true;
+  },
+
+  loginWithSocial: async (_provider: 'google' | 'apple') => {
+    set({ isLoading: true });
+    // FUTURE: implement OAuth via Supabase provider
+    await new Promise((r) => setTimeout(r, 1000));
+    const user = { ...MOCK_USER };
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
+    set({ user, isGuest: false, isAuthenticated: true, isLoading: false });
   },
 
   continueAsGuest: () => {

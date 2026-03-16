@@ -165,10 +165,10 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     paddingLeft: Spacing.md,
-    paddingTop: 2,
+    paddingTop: 1,
   },
   contentWithMargin: {
-    paddingBottom: Spacing.lg,
+    paddingBottom: Spacing.xl,
   },
   stageHeader: {
     flexDirection: 'row',
@@ -176,9 +176,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   stageName: {
-    fontSize: Typography.sm,
+    fontSize: Typography.base,
     fontWeight: Typography.semibold,
     flex: 1,
+    lineHeight: 22,
   },
   stageNameCompleted: {
     color: Colors.textSecondary,

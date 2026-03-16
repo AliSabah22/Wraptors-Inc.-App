@@ -1,98 +1,204 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Colors, Typography, Spacing, GradientColors, Shadow } from '@/constants/theme';
+import { Colors, Typography, Spacing, Radius, GradientColors } from '@/constants/theme';
 import { Button } from '@/components/ui/Button';
+import { Input } from '@/components/ui/Input';
+import { LogoModel } from '@/components/ui/LogoModel';
 import { useAuthStore } from '@/store/authStore';
-
 
 export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const continueAsGuest = useAuthStore((s) => s.continueAsGuest);
+  const { continueAsGuest, loginWithEmail, loginWithSocial, isLoading } = useAuthStore();
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+
+  const anyLoading = isLoading || socialLoading !== null;
 
   const handleGuest = () => {
     continueAsGuest();
     router.replace('/(tabs)/' as any);
   };
 
-  const features = [
-    { icon: 'car-sport-outline' as const, label: 'Real-Time Service Tracking' },
-    { icon: 'shield-checkmark-outline' as const, label: 'Premium Protection Services' },
-    { icon: 'star-outline' as const, label: 'Members-Only Perks' },
-  ];
+  const handleSocial = async (provider: 'google' | 'apple') => {
+    setSocialLoading(provider);
+    await loginWithSocial(provider);
+    setSocialLoading(null);
+    router.replace('/(tabs)/' as any);
+  };
+
+  const handleEmailSignIn = async () => {
+    let valid = true;
+    if (!email.trim()) {
+      setEmailError('Email is required');
+      valid = false;
+    } else if (!/\S+@\S+\.\S+/.test(email)) {
+      setEmailError('Invalid email address');
+      valid = false;
+    } else {
+      setEmailError('');
+    }
+    if (!password.trim()) {
+      setPasswordError('Password is required');
+      valid = false;
+    } else {
+      setPasswordError('');
+    }
+    if (!valid) return;
+
+    const success = await loginWithEmail(email, password);
+    if (success) router.replace('/(tabs)/' as any);
+  };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Background gradient hero */}
-      <LinearGradient
-        colors={GradientColors.hero}
-        style={StyleSheet.absoluteFill}
-      />
+    <KeyboardAvoidingView
+      style={styles.flex}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      {/* Full-screen dark background gradient */}
+      <LinearGradient colors={GradientColors.hero} style={StyleSheet.absoluteFill} />
 
-      {/* Gold accent top line */}
-      <LinearGradient
-        colors={['transparent', Colors.gold, 'transparent']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-        style={styles.topLine}
-      />
-
-      {/* Logo area */}
-      <View style={styles.logoArea}>
-        <View style={styles.logoIconWrap}>
-          <Ionicons name="car-sport" size={48} color={Colors.gold} />
-        </View>
-        <Text style={styles.brand}>WRAPTORS</Text>
-        <Text style={styles.brandSub}>INC.</Text>
-        <Text style={styles.tagline}>Precision. Protection. Prestige.</Text>
-      </View>
-
-      {/* Feature highlights */}
-      <View style={styles.features}>
-        {features.map((f, i) => (
-          <View key={i} style={styles.featureRow}>
-            <View style={styles.featureIcon}>
-              <Ionicons name={f.icon} size={18} color={Colors.gold} />
-            </View>
-            <Text style={styles.featureLabel}>{f.label}</Text>
-          </View>
-        ))}
-      </View>
-
-      {/* CTA area */}
-      <View style={[styles.ctaArea, { paddingBottom: insets.bottom + Spacing.xl }]}>
-        <Button
-          label="Sign In with Phone"
-          onPress={() => router.push('/(auth)/phone-login')}
-          variant="primary"
-          size="lg"
-          style={{ marginBottom: Spacing.md }}
+      {/* Top-edge gold accent line — sits just below the status bar */}
+      <View style={{ paddingTop: insets.top }}>
+        <LinearGradient
+          colors={['transparent', Colors.gold, 'transparent']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 0 }}
+          style={styles.topLine}
         />
-
-        <TouchableOpacity onPress={handleGuest} style={styles.guestBtn}>
-          <Text style={styles.guestText}>Continue as Guest</Text>
-          <Ionicons name="arrow-forward" size={14} color={Colors.textMuted} />
-        </TouchableOpacity>
-
-        <Text style={styles.disclaimer}>
-          By continuing you agree to our Terms of Service and Privacy Policy
-        </Text>
       </View>
-    </View>
+
+      {/* ── Hero ─────────────────────────────────────────────────────────── */}
+      <View style={[styles.hero, { paddingTop: insets.top + 12 }]}>
+        <LogoModel size={200} />
+        <Text style={styles.brand}>WRAPTORS</Text>
+        <Text style={styles.brandAccent}>INC.</Text>
+        <Text style={styles.tagline}>Precision · Protection · Prestige</Text>
+      </View>
+
+      {/* ── Bottom form card ─────────────────────────────────────────────── */}
+      <View style={styles.card}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.cardContent,
+            { paddingBottom: insets.bottom + Spacing.lg },
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          {/* Social buttons */}
+          <TouchableOpacity
+            style={styles.socialBtn}
+            activeOpacity={0.8}
+            onPress={() => handleSocial('apple')}
+            disabled={anyLoading}
+          >
+            <Ionicons name="logo-apple" size={20} color={Colors.textPrimary} />
+            <Text style={styles.socialBtnText}>
+              {socialLoading === 'apple' ? 'Signing in…' : 'Continue with Apple'}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.socialBtn}
+            activeOpacity={0.8}
+            onPress={() => handleSocial('google')}
+            disabled={anyLoading}
+          >
+            <Text style={styles.googleG}>G</Text>
+            <Text style={styles.socialBtnText}>
+              {socialLoading === 'google' ? 'Signing in…' : 'Continue with Google'}
+            </Text>
+          </TouchableOpacity>
+
+          {/* Divider */}
+          <View style={styles.divider}>
+            <View style={styles.dividerLine} />
+            <Text style={styles.dividerText}>or continue with email</Text>
+            <View style={styles.dividerLine} />
+          </View>
+
+          {/* Email form */}
+          <Input
+            label="Email"
+            placeholder="you@example.com"
+            value={email}
+            onChangeText={(v) => { setEmail(v); setEmailError(''); }}
+            error={emailError}
+            leftIcon="mail-outline"
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+          <Input
+            label="Password"
+            placeholder="••••••••"
+            value={password}
+            onChangeText={(v) => { setPassword(v); setPasswordError(''); }}
+            error={passwordError}
+            leftIcon="lock-closed-outline"
+            isPassword
+          />
+
+          <Button
+            label="Sign In"
+            onPress={handleEmailSignIn}
+            loading={isLoading && socialLoading === null}
+            disabled={anyLoading}
+            size="lg"
+            style={{ marginTop: Spacing.xs }}
+          />
+
+          {/* Secondary options */}
+          <View style={styles.secondaryRow}>
+            <TouchableOpacity
+              onPress={() => router.push('/(auth)/phone-login')}
+              style={styles.secondaryBtn}
+              disabled={anyLoading}
+            >
+              <Ionicons name="phone-portrait-outline" size={14} color={Colors.gold} />
+              <Text style={styles.secondaryText}>Sign in with Phone</Text>
+            </TouchableOpacity>
+
+            <View style={styles.dot} />
+
+            <TouchableOpacity
+              onPress={handleGuest}
+              style={styles.secondaryBtn}
+              disabled={anyLoading}
+            >
+              <Text style={styles.secondaryText}>Continue as Guest</Text>
+            </TouchableOpacity>
+          </View>
+
+          <Text style={styles.disclaimer}>
+            By continuing you agree to our Terms of Service and Privacy Policy
+          </Text>
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  flex: {
     flex: 1,
     backgroundColor: Colors.background,
   },
@@ -100,92 +206,127 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
   },
-  logoArea: {
+
+  // Hero
+  hero: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: Spacing.xxl,
-  },
-  logoIconWrap: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: Colors.goldMuted,
-    borderWidth: 1,
-    borderColor: Colors.goldBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: Spacing.xl,
-    ...Shadow.gold,
+    // Minimum height keeps the logo visible on very small screens
+    minHeight: 260,
   },
   brand: {
     color: Colors.textPrimary,
     fontSize: Typography.display,
     fontWeight: Typography.heavy,
-    letterSpacing: Typography.widest * 1.5,
+    letterSpacing: 6,
     textAlign: 'center',
+    marginTop: Spacing.lg,
   },
-  brandSub: {
+  brandAccent: {
     color: Colors.gold,
     fontSize: Typography.xxl,
     fontWeight: Typography.heavy,
-    letterSpacing: Typography.widest * 2,
-    marginTop: -8,
+    letterSpacing: 8,
+    marginTop: -6,
     textAlign: 'center',
   },
   tagline: {
     color: Colors.textMuted,
-    fontSize: Typography.sm,
+    fontSize: Typography.xs,
     letterSpacing: Typography.wider,
     textTransform: 'uppercase',
-    marginTop: Spacing.md,
+    marginTop: Spacing.sm,
     textAlign: 'center',
   },
-  features: {
-    paddingHorizontal: Spacing.xxl,
-    paddingBottom: Spacing.xl,
-    gap: Spacing.md,
+
+  // Card
+  card: {
+    backgroundColor: Colors.backgroundCard,
+    borderTopLeftRadius: Radius.xxl,
+    borderTopRightRadius: Radius.xxl,
+    borderTopWidth: 1,
+    borderColor: Colors.border,
   },
-  featureRow: {
+  cardContent: {
+    padding: Spacing.xl,
+    gap: Spacing.sm,
+  },
+
+  // Social buttons
+  socialBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: Spacing.md,
-  },
-  featureIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: Colors.goldMuted,
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: Spacing.md,
+    height: 52,
+    borderRadius: Radius.md,
+    backgroundColor: Colors.backgroundElevated,
     borderWidth: 1,
-    borderColor: Colors.goldBorder,
+    borderColor: Colors.border,
   },
-  featureLabel: {
-    color: Colors.textSecondary,
+  socialBtnText: {
+    color: Colors.textPrimary,
     fontSize: Typography.base,
-    fontWeight: Typography.medium,
+    fontWeight: Typography.semibold,
   },
-  ctaArea: {
-    paddingHorizontal: Spacing.xl,
+  googleG: {
+    color: '#4285F4',
+    fontSize: Typography.lg,
+    fontWeight: Typography.bold,
+    lineHeight: 20,
   },
-  guestBtn: {
+
+  // Divider
+  divider: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.md,
+    marginVertical: Spacing.xs,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: Colors.border,
+  },
+  dividerText: {
+    color: Colors.textMuted,
+    fontSize: Typography.xs,
+    letterSpacing: Typography.wide,
+  },
+
+  // Secondary row
+  secondaryRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: Spacing.md,
-    marginBottom: Spacing.base,
+    marginTop: Spacing.md,
+    gap: Spacing.md,
   },
-  guestText: {
+  secondaryBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingVertical: Spacing.sm,
+  },
+  secondaryText: {
     color: Colors.textMuted,
-    fontSize: Typography.base,
+    fontSize: Typography.sm,
     fontWeight: Typography.medium,
   },
+  dot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    backgroundColor: Colors.textDisabled,
+  },
+
   disclaimer: {
     color: Colors.textDisabled,
     fontSize: Typography.xs,
     textAlign: 'center',
     lineHeight: 16,
+    marginTop: Spacing.xs,
   },
 });

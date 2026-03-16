@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -53,15 +53,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backBtn: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'flex-start',
     justifyContent: 'center',
   },
   backBtnInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: Colors.backgroundElevated,
     borderWidth: 1,
     borderColor: Colors.border,
@@ -74,17 +74,18 @@ const styles = StyleSheet.create({
   },
   title: {
     color: Colors.textPrimary,
-    fontSize: Typography.md,
+    fontSize: Typography.lg,
     fontWeight: Typography.bold,
     letterSpacing: Typography.tight,
   },
   subtitle: {
-    color: Colors.textMuted,
-    fontSize: Typography.xs,
-    marginTop: 2,
+    color: Colors.textSecondary,
+    fontSize: Typography.sm,
+    marginTop: 3,
   },
   right: {
-    width: 36,
+    minWidth: 40,
     alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 });

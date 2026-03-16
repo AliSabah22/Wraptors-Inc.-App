@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
-import { Colors, Typography, Spacing, Radius } from '@/constants/theme';
+import { Colors, Typography, Radius } from '@/constants/theme';
 
 type BadgeVariant = 'gold' | 'success' | 'warning' | 'error' | 'info' | 'muted';
 
@@ -38,23 +38,25 @@ export function Badge({ label, variant = 'muted', small = false }: BadgeProps) {
 
 const styles = StyleSheet.create({
   badge: {
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: Radius.full,
     borderWidth: 1,
     alignSelf: 'flex-start',
   },
   small: {
-    paddingHorizontal: Spacing.xs + 2,
-    paddingVertical: 2,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
   },
   label: {
     fontSize: Typography.xs,
     fontWeight: Typography.semibold,
     letterSpacing: Typography.wide,
     textTransform: 'uppercase',
+    lineHeight: 16,
   },
   labelSmall: {
-    fontSize: 10,
+    fontSize: 11,
+    lineHeight: 14,
   },
 });

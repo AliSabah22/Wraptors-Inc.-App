@@ -112,23 +112,25 @@ export default function NotificationsScreen() {
       />
 
       {/* Filter tabs */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabsScroll}
-      >
-        {FILTER_TABS.map((tab) => (
-          <TouchableOpacity
-            key={tab.value}
-            style={[styles.tab, activeTab === tab.value && styles.tabActive]}
-            onPress={() => setActiveTab(tab.value)}
-          >
-            <Text style={[styles.tabText, activeTab === tab.value && styles.tabTextActive]}>
-              {tab.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+      <View style={styles.tabsRow}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabsScroll}
+        >
+          {FILTER_TABS.map((tab) => (
+            <TouchableOpacity
+              key={tab.value}
+              style={[styles.tab, activeTab === tab.value && styles.tabActive]}
+              onPress={() => setActiveTab(tab.value)}
+            >
+              <Text style={[styles.tabText, activeTab === tab.value && styles.tabTextActive]}>
+                {tab.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
 
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -207,25 +209,31 @@ const styles = StyleSheet.create({
   },
   markAllBtn: {
     paddingHorizontal: Spacing.sm,
-    paddingVertical: 4,
+    paddingVertical: 6,
   },
   markAllText: {
     color: Colors.gold,
-    fontSize: Typography.xs,
+    fontSize: Typography.sm,
     fontWeight: Typography.semibold,
+  },
+  tabsRow: {
+    height: 52,
+    justifyContent: 'center',
   },
   tabsScroll: {
     paddingHorizontal: Spacing.base,
-    paddingVertical: Spacing.sm,
+    paddingVertical: Spacing.md,
     gap: Spacing.sm,
+    alignItems: 'center',
   },
   tab: {
-    paddingHorizontal: Spacing.md,
-    paddingVertical: 7,
+    paddingHorizontal: Spacing.base,
+    paddingVertical: 9,
     borderRadius: Radius.full,
     backgroundColor: Colors.backgroundElevated,
     borderWidth: 1,
     borderColor: Colors.border,
+    flexShrink: 0,
   },
   tabActive: {
     backgroundColor: Colors.goldMuted,
@@ -234,16 +242,15 @@ const styles = StyleSheet.create({
   tabText: {
     color: Colors.textMuted,
     fontSize: Typography.sm,
-    fontWeight: Typography.medium,
+    fontWeight: Typography.semibold,
   },
   tabTextActive: {
     color: Colors.gold,
-    fontWeight: Typography.semibold,
   },
   scrollContent: {
     paddingHorizontal: Spacing.base,
-    paddingTop: Spacing.xs,
-    gap: Spacing.sm,
+    paddingTop: Spacing.sm,
+    gap: Spacing.md,
   },
   emptyState: {
     alignItems: 'center',
@@ -263,7 +270,7 @@ const styles = StyleSheet.create({
     borderLeftWidth: 3,
     flexDirection: 'row',
     alignItems: 'flex-start',
-    padding: Spacing.base,
+    padding: Spacing.lg,
     gap: Spacing.md,
     position: 'relative',
     overflow: 'hidden',
@@ -273,16 +280,16 @@ const styles = StyleSheet.create({
   },
   unreadDot: {
     position: 'absolute',
-    top: Spacing.sm,
-    right: Spacing.sm,
-    width: 7,
-    height: 7,
+    top: Spacing.md,
+    right: Spacing.md,
+    width: 8,
+    height: 8,
     borderRadius: 4,
   },
   iconWrap: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
@@ -290,7 +297,7 @@ const styles = StyleSheet.create({
   },
   cardBody: {
     flex: 1,
-    gap: 4,
+    gap: 5,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -300,29 +307,30 @@ const styles = StyleSheet.create({
   cardTitle: {
     flex: 1,
     color: Colors.textPrimary,
-    fontSize: Typography.sm,
+    fontSize: Typography.base,
     fontWeight: Typography.semibold,
+    lineHeight: 20,
   },
   cardTime: {
     color: Colors.textMuted,
-    fontSize: 10,
+    fontSize: Typography.xs,
     flexShrink: 0,
   },
   cardBody2: {
-    color: Colors.textMuted,
-    fontSize: Typography.xs,
-    lineHeight: 17,
+    color: Colors.textSecondary,
+    fontSize: Typography.sm,
+    lineHeight: 19,
   },
   cta: {
     alignSelf: 'flex-start',
-    marginTop: 4,
-    paddingHorizontal: Spacing.sm,
-    paddingVertical: 3,
+    marginTop: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: Radius.sm,
     borderWidth: 1,
   },
   ctaText: {
-    fontSize: 11,
+    fontSize: Typography.xs,
     fontWeight: Typography.semibold,
   },
 });

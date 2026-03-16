@@ -17,8 +17,8 @@ export const Colors = {
   // Text
   textPrimary: '#FFFFFF',
   textSecondary: '#CCCCCC',
-  textMuted: '#666666',
-  textDisabled: '#444444',
+  textMuted: '#888888',
+  textDisabled: '#555555',
 
   // Borders
   border: '#222222',
@@ -50,7 +50,7 @@ export const Colors = {
 
 export const Typography = {
   // Font sizes
-  xs: 11,
+  xs: 12,
   sm: 13,
   base: 15,
   md: 16,
@@ -84,7 +84,7 @@ export const Spacing = {
   xl: 24,
   xxl: 32,
   xxxl: 40,
-  section: 48,
+  section: 56,
 };
 
 export const Radius = {

@@ -43,12 +43,19 @@ export default function QuoteScreen() {
     serviceDetails: '',
     additionalInfo: '',
   });
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory | null>(
-    (params.service as ServiceCategory) ?? null
+  const [selectedCategories, setSelectedCategories] = useState<ServiceCategory[]>(
+    params.service ? [params.service as ServiceCategory] : []
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [quoteId, setQuoteId] = useState('');
+
+  const toggleCategory = (cat: ServiceCategory) => {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+    setErrors((e) => ({ ...e, category: '' }));
+  };
 
   const updateField = (key: string, value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -62,7 +69,7 @@ export default function QuoteScreen() {
     else if (!/\S+@\S+\.\S+/.test(form.email)) newErrors.email = 'Invalid email address';
     if (!form.phone.trim()) newErrors.phone = 'Phone is required';
     if (!form.vehicleInfo.trim()) newErrors.vehicleInfo = 'Vehicle info is required';
-    if (!selectedCategory) newErrors.category = 'Please select a service category';
+    if (selectedCategories.length === 0) newErrors.category = 'Please select at least one service';
     if (!form.serviceDetails.trim()) newErrors.serviceDetails = 'Service details are required';
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -76,7 +83,7 @@ export default function QuoteScreen() {
       email: form.email,
       phone: form.phone,
       vehicleInfo: form.vehicleInfo,
-      serviceCategory: selectedCategory!,
+      serviceCategories: selectedCategories,
       serviceDetails: form.serviceDetails,
       additionalInfo: form.additionalInfo,
       imageUris: [],
@@ -114,7 +121,7 @@ export default function QuoteScreen() {
             onPress={() => {
               setSubmitted(false);
               setForm({ name: '', email: '', phone: '', vehicleInfo: '', serviceDetails: '', additionalInfo: '' });
-              setSelectedCategory(null);
+              setSelectedCategories([]);
             }}
           />
         </View>
@@ -188,29 +195,34 @@ export default function QuoteScreen() {
           <GoldDivider style={{ marginVertical: Spacing.base }} />
 
           {/* Service category */}
-          <Text style={styles.sectionTitle}>Service Type</Text>
+          <View style={styles.serviceTitleRow}>
+            <Text style={styles.sectionTitle}>Service Type</Text>
+            {selectedCategories.length > 0 && (
+              <View style={styles.selectedCount}>
+                <Text style={styles.selectedCountText}>{selectedCategories.length} selected</Text>
+              </View>
+            )}
+          </View>
+          <Text style={styles.serviceHint}>Select all services you're interested in</Text>
           {errors.category ? <Text style={styles.errorText}>{errors.category}</Text> : null}
           <View style={styles.categoryGrid}>
-            {SERVICE_CATEGORIES.map((cat) => (
-              <TouchableOpacity
-                key={cat.value}
-                style={[
-                  styles.categoryChip,
-                  selectedCategory === cat.value && styles.categoryChipActive,
-                ]}
-                onPress={() => {
-                  setSelectedCategory(cat.value);
-                  setErrors((e) => ({ ...e, category: '' }));
-                }}
-              >
-                <Text style={[
-                  styles.categoryChipText,
-                  selectedCategory === cat.value && styles.categoryChipTextActive,
-                ]}>
-                  {cat.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {SERVICE_CATEGORIES.map((cat) => {
+              const isSelected = selectedCategories.includes(cat.value);
+              return (
+                <TouchableOpacity
+                  key={cat.value}
+                  style={[styles.categoryChip, isSelected && styles.categoryChipActive]}
+                  onPress={() => toggleCategory(cat.value)}
+                >
+                  {isSelected && (
+                    <Ionicons name="checkmark-circle" size={14} color={Colors.gold} />
+                  )}
+                  <Text style={[styles.categoryChipText, isSelected && styles.categoryChipTextActive]}>
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
           <GoldDivider style={{ marginVertical: Spacing.base }} />
@@ -297,6 +309,9 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
   },
   categoryChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
     paddingHorizontal: Spacing.md,
     paddingVertical: Spacing.sm,
     borderRadius: Radius.md,
@@ -317,6 +332,30 @@ const styles = StyleSheet.create({
   categoryChipTextActive: {
     color: Colors.gold,
     fontWeight: Typography.semibold,
+  },
+  serviceTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  selectedCount: {
+    backgroundColor: Colors.goldMuted,
+    borderRadius: Radius.full,
+    borderWidth: 1,
+    borderColor: Colors.goldBorder,
+    paddingHorizontal: Spacing.sm,
+    paddingVertical: 3,
+  },
+  selectedCountText: {
+    color: Colors.gold,
+    fontSize: Typography.xs,
+    fontWeight: Typography.semibold,
+  },
+  serviceHint: {
+    color: Colors.textMuted,
+    fontSize: Typography.xs,
+    marginBottom: Spacing.sm,
+    marginTop: 2,
   },
   errorText: {
     color: Colors.error,
