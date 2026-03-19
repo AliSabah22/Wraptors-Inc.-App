@@ -188,6 +188,18 @@ export default function WelcomeScreen() {
             </TouchableOpacity>
           </View>
 
+          {/* Register link */}
+          <TouchableOpacity
+            onPress={() => router.push('/(auth)/register' as any)}
+            style={styles.registerLink}
+            disabled={anyLoading}
+          >
+            <Text style={styles.registerLinkText}>
+              New here?{' '}
+              <Text style={styles.registerLinkAccent}>Create a free account</Text>
+            </Text>
+          </TouchableOpacity>
+
           <Text style={styles.disclaimer}>
             By continuing you agree to our Terms of Service and Privacy Policy
           </Text>
@@ -322,6 +334,18 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.textDisabled,
   },
 
+  registerLink: {
+    alignItems: 'center',
+    paddingVertical: Spacing.sm,
+  },
+  registerLinkText: {
+    color: Colors.textMuted,
+    fontSize: Typography.sm,
+  },
+  registerLinkAccent: {
+    color: Colors.gold,
+    fontWeight: Typography.medium,
+  },
   disclaimer: {
     color: Colors.textDisabled,
     fontSize: Typography.xs,

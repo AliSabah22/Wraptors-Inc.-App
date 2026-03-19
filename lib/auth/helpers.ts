@@ -8,10 +8,14 @@ export async function signInWithEmail(email: string, password: string) {
   return data;
 }
 
-/** Create a new Supabase Auth account. */
-export async function signUpWithEmail(email: string, password: string) {
+/** Create a new Supabase Auth account. Pass fullName to store as user metadata. */
+export async function signUpWithEmail(email: string, password: string, fullName?: string) {
   if (!isSupabaseConfigured) throw new Error('Supabase is not configured.');
-  const { data, error } = await supabase.auth.signUp({ email, password });
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: fullName ? { data: { full_name: fullName } } : undefined,
+  });
   if (error) throw error;
   return data;
 }
