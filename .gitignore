@@ -16,6 +16,10 @@ dist/
 ios/
 android/
 
+# Env
+.env
+.env.local
+
 # Misc
 .DS_Store
 *.log

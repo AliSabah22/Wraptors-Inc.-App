@@ -1,3 +1,4 @@
+import '../global.css';
 import { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -11,6 +12,7 @@ import { useCartStore } from '@/store/cartStore';
 import { useQuoteStore } from '@/store/quoteStore';
 import { useNotificationStore } from '@/store/notificationStore';
 import { NotificationToast } from '@/components/ui/NotificationToast';
+import { AuthProvider } from '@/lib/auth/context';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -42,6 +44,7 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
+    <AuthProvider>
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: Colors.background }}>
       <SafeAreaProvider>
         <StatusBar style="light" backgroundColor={Colors.background} />
@@ -73,5 +76,6 @@ export default function RootLayout() {
         <NotificationToast />
       </SafeAreaProvider>
     </GestureHandlerRootView>
+    </AuthProvider>
   );
 }
