@@ -20,7 +20,7 @@ const CATEGORY_COLORS: Record<NewsCategory, 'gold' | 'success' | 'info' | 'warni
 };
 
 export default function NewsArticleScreen() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id } = useLocalSearchParams<{ id: string }>();  
   const router = useRouter();
   const article = MOCK_NEWS.find((a) => a.id === id);
 
