@@ -141,6 +141,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       const stored = await AsyncStorage.getItem(AUTH_STORAGE_KEY);
       if (stored) {
         const { user, isGuest } = JSON.parse(stored);
+        // Discard legacy mock sessions — real Supabase IDs are UUIDs (36 chars with dashes)
+        const isRealUser = user?.id && /^[0-9a-f-]{36}$/.test(user.id);
+        if (user && !isRealUser) {
+          await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
+          return;
+        }
         set({ user, isGuest, isAuthenticated: !!user });
       }
     } catch {
