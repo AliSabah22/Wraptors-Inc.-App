@@ -68,14 +68,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return false;
   },
 
-  loginWithEmail: async (email: string, _password: string) => {
+  loginWithEmail: async (email: string, password: string) => {
     set({ isLoading: true });
-    // FUTURE: validate credentials against Supabase Auth
-    await new Promise((r) => setTimeout(r, 1200));
-    const user = { ...MOCK_USER, email };
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
-    set({ user, isGuest: false, isAuthenticated: true, isLoading: false });
-    return true;
+    try {
+      const { signInWithEmail } = await import('@/lib/auth/helpers');
+      await signInWithEmail(email, password);
+      // AuthProvider.onAuthStateChange → syncSupabaseUserToStore handles hydration
+      set({ isLoading: false });
+      return true;
+    } catch {
+      set({ isLoading: false });
+      return false;
+    }
   },
 
   loginWithSocial: async (provider: 'google' | 'apple') => {
