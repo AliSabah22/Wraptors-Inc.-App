@@ -11,6 +11,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.wraptorsinc.app",
+      "usesAppleSignIn": true,
       "infoPlist": {
         "NSPhotoLibraryUsageDescription": "Allow Wraptors Inc. to access your photos for service uploads.",
         "NSCameraUsageDescription": "Allow Wraptors Inc. to access your camera for service uploads."
@@ -46,7 +47,15 @@
         }
       ],
       "expo-asset",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-apple-authentication",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "TODO_REPLACE_WITH_REVERSED_CLIENT_ID"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

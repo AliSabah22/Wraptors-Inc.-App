@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import { configureGoogleSignIn } from '@/lib/auth/helpers';
 
 interface SupabaseAuthContextValue {
   session: Session | null;
@@ -45,6 +46,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
+
+    configureGoogleSignIn();
 
     supabase.auth.getSession().then(async ({ data }) => {
       setSession(data.session);

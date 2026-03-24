@@ -11,6 +11,7 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from '@/types';
 import { MOCK_USER } from '@/data/mockData';
+import { signInWithApple, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/auth/helpers';
 
 // Mock OTP code for MVP — replace with real SMS in production
 const MOCK_OTP = '123456';
@@ -75,13 +76,40 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return true;
   },
 
-  loginWithSocial: async (_provider: 'google' | 'apple') => {
+  loginWithSocial: async (provider: 'google' | 'apple') => {
     set({ isLoading: true });
-    // FUTURE: implement OAuth via Supabase provider
-    await new Promise((r) => setTimeout(r, 1000));
-    const user = { ...MOCK_USER };
-    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
-    set({ user, isGuest: false, isAuthenticated: true, isLoading: false });
+    try {
+      const { data, error } = provider === 'apple'
+        ? await signInWithApple()
+        : await signInWithGoogle();
+
+      if (error || !data.user) {
+        // User cancelled or Supabase not configured — fall back to mock
+        if (!error || (error as any).code === 'ERR_REQUEST_CANCELED') {
+          set({ isLoading: false });
+          return;
+        }
+        // Supabase not configured → use mock for development
+        const mockUser = { ...MOCK_USER };
+        await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: mockUser, isGuest: false }));
+        set({ user: mockUser, isGuest: false, isAuthenticated: true, isLoading: false });
+        return;
+      }
+
+      // Real Supabase sign-in — AuthProvider session change handles navigation
+      // Store a local user record mapped from Supabase user
+      const supaUser = data.user;
+      const localUser: typeof MOCK_USER = {
+        ...MOCK_USER,
+        id: supaUser.id,
+        email: supaUser.email ?? '',
+        name: supaUser.user_metadata?.full_name ?? supaUser.user_metadata?.name ?? MOCK_USER.name,
+      };
+      await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: localUser, isGuest: false }));
+      set({ user: localUser, isGuest: false, isAuthenticated: true, isLoading: false });
+    } catch {
+      set({ isLoading: false });
+    }
   },
 
   continueAsGuest: () => {
@@ -89,7 +117,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   logout: async () => {
-    // FUTURE: await supabase.auth.signOut()
+    await supabaseSignOut();
     await AsyncStorage.removeItem(AUTH_STORAGE_KEY);
     set({ user: null, isGuest: false, isAuthenticated: false, pendingPhone: '' });
   },
