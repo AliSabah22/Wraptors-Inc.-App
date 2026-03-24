@@ -9,7 +9,7 @@
 
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '@/types';
+import { User, Vehicle } from '@/types';
 import { MOCK_USER } from '@/data/mockData';
 import { signInWithApple, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/auth/helpers';
 
@@ -33,6 +33,8 @@ interface AuthState {
   logout: () => Promise<void>;
   updateUser: (updates: Partial<User>) => void;
   loadSession: () => Promise<void>;
+  /** Hydrate store from a real Supabase profile (called by AuthProvider after session established). */
+  hydrateUser: (profile: { id: string; email: string | null; full_name: string | null; phone?: string | null }, vehicles: Vehicle[]) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
@@ -140,5 +142,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     } catch {
       // ignore
     }
+  },
+
+  hydrateUser: async (profile, vehicles) => {
+    const current = get().user;
+    const hydrated: User = {
+      // Preserve mock defaults for fields not yet in Supabase schema
+      ...MOCK_USER,
+      // Overwrite with real values from Supabase
+      id: profile.id,
+      email: profile.email ?? current?.email ?? '',
+      name: profile.full_name ?? current?.name ?? MOCK_USER.name,
+      phone: profile.phone ?? current?.phone ?? '',
+      vehicles: vehicles.length > 0 ? vehicles : (current?.vehicles ?? MOCK_USER.vehicles),
+    };
+    await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user: hydrated, isGuest: false }));
+    set({ user: hydrated, isGuest: false, isAuthenticated: true });
   },
 }));

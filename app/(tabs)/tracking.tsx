@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, RefreshControl } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,9 +19,18 @@ export default function TrackingScreen() {
   const { user, isGuest } = useAuthStore();
   const { activeJobs, loadJobs } = useServiceStore();
 
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
     if (user?.id) loadJobs(user.id);
   }, [user?.id]);
+
+  const onRefresh = useCallback(async () => {
+    if (!user?.id) return;
+    setRefreshing(true);
+    await loadJobs(user.id);
+    setRefreshing(false);
+  }, [user?.id, loadJobs]);
 
   if (isGuest) {
     return (
@@ -70,6 +79,14 @@ export default function TrackingScreen() {
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={Colors.gold}
+              colors={[Colors.gold]}
+            />
+          }
         >
           {activeJobs.map((job) => {
             const daysLeft = daysFromNow(job.estimatedCompletion);

@@ -7,8 +7,9 @@
 
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ServiceJob, ServiceStage, StageStatus } from '@/types';
+import { ServiceJob, ServiceStage, StageStatus, Vehicle } from '@/types';
 import { MOCK_ACTIVE_JOBS } from '@/data/mockData';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 const JOBS_STORAGE_KEY = '@wraptors_jobs';
 
@@ -50,8 +51,55 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
 
   loadJobs: async (userId: string) => {
     set({ isLoading: true });
+
+    // Try Supabase first when configured
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await (supabase as any)
+          .from('service_jobs')
+          .select('*, vehicles(*)')
+          .eq('customer_id', userId)
+          .neq('status', 'cancelled')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const jobs: ServiceJob[] = data.map((row: any) => {
+            const v = row.vehicles as any;
+            const vehicle: Vehicle = v
+              ? { id: v.id, userId: v.customer_id, make: v.make, model: v.model, year: v.year, color: v.color ?? '', licensePlate: v.license_plate ?? '', vin: v.vin ?? undefined, imageUrl: v.image_url ?? undefined }
+              : { id: row.vehicle_id ?? '', userId, make: 'Unknown', model: 'Vehicle', year: new Date().getFullYear(), color: '', licensePlate: '' };
+            const stages: ServiceStage[] = Array.isArray(row.stages) ? row.stages : [];
+            return {
+              id: row.id,
+              userId: row.customer_id,
+              vehicleId: row.vehicle_id ?? '',
+              vehicle,
+              serviceType: row.service_type,
+              serviceCategory: row.service_category,
+              description: row.notes ?? '',
+              status: row.status,
+              progressPercent: row.progress_percent,
+              currentStageName: row.current_stage_name,
+              estimatedCompletion: row.estimated_completion ?? new Date().toISOString(),
+              startedAt: row.started_at ?? row.created_at,
+              completedAt: row.completed_at ?? undefined,
+              technicianName: row.technician_name ?? 'Wraptors Team',
+              stages,
+              notes: row.notes ?? undefined,
+              totalCost: row.total_cost ?? undefined,
+              invoiceUrl: row.invoice_url ?? undefined,
+            };
+          });
+          set({ activeJobs: jobs, isLoading: false });
+          return;
+        }
+      } catch {
+        // Fall through to mock
+      }
+    }
+
+    // Fall back to AsyncStorage / mock data
     try {
-      // FUTURE: const { data } = await supabase.from('service_jobs').select('*').eq('user_id', userId)
       const stored = await AsyncStorage.getItem(JOBS_STORAGE_KEY);
       if (stored) {
         const jobs: ServiceJob[] = JSON.parse(stored);

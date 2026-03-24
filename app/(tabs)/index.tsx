@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   Dimensions,
+  RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -51,6 +52,15 @@ export default function HomeScreen() {
     }
   }, [user?.id]);
 
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    if (!user?.id) return;
+    setRefreshing(true);
+    await Promise.all([loadJobs(user.id), loadNotifications(user.id)]);
+    setRefreshing(false);
+  }, [user?.id, loadJobs, loadNotifications]);
+
   const notifUnread = unreadCount();
   const recommendations = notifications
     .filter((n) => n.type === 'recommendation' && !n.read)
@@ -66,6 +76,14 @@ export default function HomeScreen() {
         style={styles.scroll}
         contentContainerStyle={{ paddingBottom: Spacing.xxl }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={Colors.gold}
+            colors={[Colors.gold]}
+          />
+        }
       >
         {/* Hero header */}
         <LinearGradient

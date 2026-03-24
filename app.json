@@ -8,6 +8,9 @@
     "scheme": "wraptors",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": false
+    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.wraptorsinc.app",
