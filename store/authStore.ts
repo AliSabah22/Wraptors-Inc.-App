@@ -76,9 +76,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // AuthProvider.onAuthStateChange → syncSupabaseUserToStore handles hydration
       set({ isLoading: false });
       return true;
-    } catch {
+    } catch (err: any) {
       set({ isLoading: false });
-      return false;
+      console.log('[loginWithEmail] error:', err?.message ?? err);
+      throw err;
     }
   },
 

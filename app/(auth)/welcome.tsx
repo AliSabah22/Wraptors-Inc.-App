@@ -64,11 +64,11 @@ export default function WelcomeScreen() {
     if (!valid) return;
     setLoginError('');
 
-    const success = await loginWithEmail(email, password);
-    if (success) {
-      router.replace('/(tabs)/' as any);
-    } else {
-      setLoginError('Incorrect email or password. Please try again.');
+    try {
+      const success = await loginWithEmail(email, password);
+      if (success) router.replace('/(tabs)/' as any);
+    } catch (err: any) {
+      setLoginError(err?.message ?? 'Sign in failed. Please try again.');
     }
   };
 
