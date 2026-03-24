@@ -49,13 +49,7 @@
       "expo-asset",
       "expo-secure-store",
       "expo-web-browser",
-      "expo-apple-authentication",
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "TODO_REPLACE_WITH_REVERSED_CLIENT_ID"
-        }
-      ]
+      "expo-apple-authentication"
     ],
     "experiments": {
       "typedRoutes": true

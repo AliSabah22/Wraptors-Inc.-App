@@ -10,6 +10,7 @@
  *   Both   → Supabase Dashboard → Auth → Providers → enable each provider
  */
 
+import { TurboModuleRegistry } from 'react-native';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import type { AuthResponse } from '@supabase/supabase-js';
 
@@ -94,6 +95,9 @@ export async function signInWithApple(): Promise<AuthResponse> {
  * webClientId comes from EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID env var.
  */
 export function configureGoogleSignIn() {
+  // Guard: TurboModules throw an invariant violation (not catchable) if the
+  // native module isn't registered. Check availability before requiring.
+  if (!TurboModuleRegistry.get('RNGoogleSignin')) return;
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { GoogleSignin } = require('@react-native-google-signin/google-signin');
@@ -102,7 +106,7 @@ export function configureGoogleSignIn() {
       GoogleSignin.configure({ webClientId, offlineAccess: true });
     }
   } catch {
-    // Package not available (e.g. Expo Go) — silently skip
+    // Silently skip
   }
 }
 
@@ -112,8 +116,8 @@ export function configureGoogleSignIn() {
  * - Returns { data, error } — caller checks error field.
  */
 export async function signInWithGoogle(): Promise<AuthResponse> {
-  if (!isSupabaseConfigured) {
-    return { data: { user: null, session: null }, error: new Error('Supabase is not configured.') as any };
+  if (!isSupabaseConfigured || !TurboModuleRegistry.get('RNGoogleSignin')) {
+    return { data: { user: null, session: null }, error: new Error('Google Sign In is not available.') as any };
   }
 
   try {
@@ -146,13 +150,15 @@ export async function signInWithGoogle(): Promise<AuthResponse> {
 export async function signOut() {
   if (!isSupabaseConfigured) return;
 
-  // Best-effort Google sign-out
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { GoogleSignin } = require('@react-native-google-signin/google-signin');
-    await GoogleSignin.signOut();
-  } catch {
-    // Not signed in via Google, or package unavailable — ignore
+  // Best-effort Google sign-out (only if native module is registered)
+  if (TurboModuleRegistry.get('RNGoogleSignin')) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { GoogleSignin } = require('@react-native-google-signin/google-signin');
+      await GoogleSignin.signOut();
+    } catch {
+      // Not signed in via Google — ignore
+    }
   }
 
   await supabase.auth.signOut();
