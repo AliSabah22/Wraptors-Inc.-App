@@ -28,6 +28,7 @@ export default function WelcomeScreen() {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [socialLoading, setSocialLoading] = useState<'google' | 'apple' | null>(null);
+  const [loginError, setLoginError] = useState('');
 
   const anyLoading = isLoading || socialLoading !== null;
 
@@ -61,9 +62,14 @@ export default function WelcomeScreen() {
       setPasswordError('');
     }
     if (!valid) return;
+    setLoginError('');
 
     const success = await loginWithEmail(email, password);
-    if (success) router.replace('/(tabs)/' as any);
+    if (success) {
+      router.replace('/(tabs)/' as any);
+    } else {
+      setLoginError('Incorrect email or password. Please try again.');
+    }
   };
 
   return (
@@ -165,6 +171,13 @@ export default function WelcomeScreen() {
             size="lg"
             style={{ marginTop: Spacing.xs }}
           />
+
+          {loginError ? (
+            <View style={styles.loginErrorBox}>
+              <Ionicons name="alert-circle-outline" size={15} color={Colors.error} />
+              <Text style={styles.loginErrorText}>{loginError}</Text>
+            </View>
+          ) : null}
 
           {/* Secondary options */}
           <View style={styles.secondaryRow}>
@@ -345,6 +358,21 @@ const styles = StyleSheet.create({
   registerLinkAccent: {
     color: Colors.gold,
     fontWeight: Typography.medium,
+  },
+  loginErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.sm,
+    backgroundColor: Colors.errorMuted,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Colors.errorBorder,
+    padding: Spacing.sm,
+  },
+  loginErrorText: {
+    color: Colors.error,
+    fontSize: Typography.sm,
+    flex: 1,
   },
   disclaimer: {
     color: Colors.textDisabled,
