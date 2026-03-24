@@ -145,6 +145,8 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
 
     set({ activeJobs: updated });
     await persistAllJobs(updated);
+    const changedJob = updated.find((j) => j.id === jobId);
+    if (changedJob) await persistJobToSupabase(changedJob);
   },
 
   addTechnicianNote: async (jobId, stageId, note) => {
@@ -159,6 +161,8 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
     });
     set({ activeJobs: updated });
     await persistAllJobs(updated);
+    const changedJob = updated.find((j) => j.id === jobId);
+    if (changedJob) await persistJobToSupabase(changedJob);
   },
 
   advanceToNextStage: async (jobId) => {
@@ -191,6 +195,8 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
 
     set({ activeJobs: updated });
     await persistAllJobs(updated);
+    const changedJob = updated.find((j) => j.id === jobId);
+    if (changedJob) await persistJobToSupabase(changedJob);
   },
 
   markJobComplete: async (jobId) => {
@@ -213,8 +219,32 @@ export const useServiceStore = create<ServiceState>((set, get) => ({
     });
     set({ activeJobs: updated });
     await persistAllJobs(updated);
+    const changedJob = updated.find((j) => j.id === jobId);
+    if (changedJob) await persistJobToSupabase(changedJob);
   },
 }));
+
+/** Persist updated job fields to Supabase (best-effort, non-blocking). */
+async function persistJobToSupabase(job: ServiceJob) {
+  if (!isSupabaseConfigured) return;
+  // Only real Supabase UUIDs — mock IDs like 'j1' are skipped
+  if (!/^[0-9a-f-]{36}$/.test(job.id)) return;
+  try {
+    await (supabase as any)
+      .from('service_jobs')
+      .update({
+        stages: job.stages,
+        progress_percent: job.progressPercent,
+        current_stage_name: job.currentStageName,
+        status: job.status,
+        completed_at: job.completedAt ?? null,
+        notes: job.notes ?? null,
+      })
+      .eq('id', job.id);
+  } catch {
+    // Non-blocking — AsyncStorage is the source of truth for the session
+  }
+}
 
 async function persistAllJobs(jobs: ServiceJob[]) {
   try {

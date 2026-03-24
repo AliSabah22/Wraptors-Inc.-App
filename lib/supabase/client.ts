@@ -1,6 +1,7 @@
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/database';
 import { ExpoSecureStoreAdapter } from './storage';
+import { rnFetch } from './rnFetch';
 
 const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
 const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
@@ -19,5 +20,11 @@ export const supabase = createSupabaseClient<Database>(supabaseUrl, supabaseAnon
     persistSession: true,
     detectSessionInUrl: false,
     flowType: 'pkce',
+  },
+  global: {
+    // React Native's fetch polyfill has a bug where Response.text() returns
+    // a Blob object that stringifies to "[object Object]", breaking JSON.parse.
+    // XHR's responseText always gives a proper UTF-8 string.
+    fetch: rnFetch,
   },
 });

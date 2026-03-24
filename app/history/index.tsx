@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { Colors, Typography, Spacing, Radius, Shadow } from '@/constants/theme';
@@ -9,10 +9,12 @@ import { EmptyState } from '@/components/ui/EmptyState';
 import { useAuthStore } from '@/store/authStore';
 import { MOCK_SERVICE_HISTORY } from '@/data/mockData';
 import { formatDate, formatCurrency, serviceCategoryLabel } from '@/utils/helpers';
+import { useServiceHistory } from '@/hooks/useServiceHistory';
 
 export default function ServiceHistoryScreen() {
   const router = useRouter();
   const { isGuest, user } = useAuthStore();
+  const { history: liveHistory, isLoading } = useServiceHistory();
 
   if (isGuest) {
     return (
@@ -29,11 +31,15 @@ export default function ServiceHistoryScreen() {
     );
   }
 
-  const history = MOCK_SERVICE_HISTORY.filter((h) => h.userId === user?.id);
+  // Use real Supabase data when available; fall back to mock until confirmed
+  const history = liveHistory.length > 0
+    ? liveHistory
+    : MOCK_SERVICE_HISTORY.filter((h) => h.userId === user?.id);
 
   return (
     <View style={styles.container}>
-      <ScreenHeader title="Service History" subtitle={`${history.length} completed services`} />
+      <ScreenHeader title="Service History" subtitle={isLoading ? 'Loading…' : `${history.length} completed services`} />
+      {isLoading && <ActivityIndicator size="small" color={Colors.gold} style={styles.loader} />}
 
       {history.length === 0 ? (
         <EmptyState
@@ -102,6 +108,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  loader: {
+    marginTop: Spacing.sm,
   },
   scrollContent: {
     padding: Spacing.base,

@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/Button';
 import { GoldDivider } from '@/components/ui/GoldDivider';
 import { useAuthStore } from '@/store/authStore';
 import { IssueType } from '@/types';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 const ISSUE_TYPES: { label: string; value: IssueType; icon: keyof typeof Ionicons.glyphMap }[] = [
   { label: 'Wrap Damage', value: 'wrap_damage', icon: 'alert-outline' },
@@ -58,8 +59,21 @@ export default function EmergencyScreen() {
   const handleSubmit = async () => {
     if (!validate()) return;
     setIsSubmitting(true);
-    // FUTURE: POST to emergency endpoint / Supabase
-    await new Promise((r) => setTimeout(r, 800));
+    try {
+      if (isSupabaseConfigured) {
+        await (supabase as any).from('quote_requests').insert({
+          customer_id: user?.id ?? null,
+          customer_name: user?.name ?? '',
+          customer_email: user?.email ?? '',
+          customer_phone: contactPhone,
+          vehicle_info: vehicleDesc,
+          service_details: `${selectedIssue}: ${description}`,
+          source: 'emergency',
+        });
+      }
+    } catch {
+      // Non-blocking: show success regardless so the user isn't stranded
+    }
     setIsSubmitting(false);
     setSubmitted(true);
   };

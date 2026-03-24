@@ -18,6 +18,7 @@ import { MembershipBadge } from '@/components/ui/MembershipBadge';
 import { LockedFeature } from '@/components/ui/LockedFeature';
 import { useAuthStore } from '@/store/authStore';
 import { useMembershipAccess } from '@/hooks/useMembershipAccess';
+import { useReferrals } from '@/hooks/useReferrals';
 import { MOCK_MEMBERSHIP_PLANS } from '@/data/mockData';
 import { MembershipTier } from '@/types';
 
@@ -108,6 +109,7 @@ export default function MembersScreen() {
   const router = useRouter();
   const { user, isGuest, isAuthenticated } = useAuthStore();
   const { tier, hasAccess } = useMembershipAccess();
+  const { referralCount, referralCredits } = useReferrals();
 
   // ── Guest / unauthenticated gate ──────────────────────────────────────────
   if (isGuest || !isAuthenticated) {
@@ -370,12 +372,12 @@ export default function MembersScreen() {
                 </View>
                 <View style={styles.rewardsDivider} />
                 <View style={styles.rewardsStat}>
-                  <Text style={styles.rewardsStatValue}>0</Text>
+                  <Text style={styles.rewardsStatValue}>{referralCount}</Text>
                   <Text style={styles.rewardsStatLabel}>referrals made</Text>
                 </View>
                 <View style={styles.rewardsDivider} />
                 <View style={styles.rewardsStat}>
-                  <Text style={styles.rewardsStatValue}>$0</Text>
+                  <Text style={styles.rewardsStatValue}>${referralCredits.toFixed(0)}</Text>
                   <Text style={styles.rewardsStatLabel}>credits earned</Text>
                 </View>
               </View>

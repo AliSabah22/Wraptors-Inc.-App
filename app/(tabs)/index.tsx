@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/Badge';
 import { MembershipBadge } from '@/components/ui/MembershipBadge';
 import { MOCK_NEWS, MOCK_PRODUCTS } from '@/data/mockData';
 import { timeAgo, formatCurrency } from '@/utils/helpers';
+import { useOffers } from '@/hooks/useOffers';
 
 const { width } = Dimensions.get('window');
 
@@ -43,6 +44,7 @@ export default function HomeScreen() {
   const { user, isGuest } = useAuthStore();
   const { activeJobs, loadJobs } = useServiceStore();
   const { notifications, loadNotifications, unreadCount } = useNotificationStore();
+  const { offers, refresh: refreshOffers } = useOffers();
   const isStandardMember = !isGuest && user?.membershipTier === 'standard';
 
   useEffect(() => {
@@ -57,7 +59,7 @@ export default function HomeScreen() {
   const onRefresh = useCallback(async () => {
     if (!user?.id) return;
     setRefreshing(true);
-    await Promise.all([loadJobs(user.id), loadNotifications(user.id)]);
+    await Promise.all([loadJobs(user.id), loadNotifications(user.id), refreshOffers()]);
     setRefreshing(false);
   }, [user?.id, loadJobs, loadNotifications]);
 
@@ -240,34 +242,62 @@ export default function HomeScreen() {
             </View>
           )}
 
-          {/* Featured news */}
+          {/* Offers / Featured news */}
           <View style={styles.section}>
             <SectionHeader
-              title="Latest News"
+              title={offers.length > 0 ? 'Current Offers' : 'Latest News'}
               actionLabel="View All"
-              onAction={() => router.push('/news/')}
+              onAction={() => router.push(offers.length > 0 ? '/members/' as any : '/news/')}
             />
-            {featuredNews.map((article) => (
-              <TouchableOpacity
-                key={article.id}
-                style={styles.newsCard}
-                activeOpacity={0.8}
-                onPress={() => router.push(`/news/${article.id}` as any)}
-              >
-                <View style={styles.newsCardInner}>
-                  <View style={styles.newsThumb}>
-                    <Ionicons name="newspaper-outline" size={24} color={Colors.gold} />
-                  </View>
-                  <View style={styles.newsContent}>
-                    <Badge label={article.category.replace('_', ' ')} variant="gold" small />
-                    <Text style={styles.newsTitle} numberOfLines={2}>
-                      {article.title}
-                    </Text>
-                    <Text style={styles.newsTime}>{timeAgo(article.publishedAt)}</Text>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            ))}
+            {offers.length > 0
+              ? offers.slice(0, 2).map((offer) => (
+                  <TouchableOpacity
+                    key={offer.id}
+                    style={styles.newsCard}
+                    activeOpacity={0.8}
+                    onPress={() => router.push('/members/' as any)}
+                  >
+                    <View style={styles.newsCardInner}>
+                      <View style={styles.newsThumb}>
+                        <Ionicons name="pricetag-outline" size={24} color={Colors.gold} />
+                      </View>
+                      <View style={styles.newsContent}>
+                        {offer.offerCode
+                          ? <Badge label={offer.offerCode} variant="gold" small />
+                          : <Badge label="Offer" variant="gold" small />
+                        }
+                        <Text style={styles.newsTitle} numberOfLines={2}>
+                          {offer.title}
+                        </Text>
+                        <Text style={styles.newsTime}>
+                          {offer.offerHeadline ?? offer.offerBody ?? offer.offerCta}
+                        </Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))
+              : featuredNews.map((article) => (
+                  <TouchableOpacity
+                    key={article.id}
+                    style={styles.newsCard}
+                    activeOpacity={0.8}
+                    onPress={() => router.push(`/news/${article.id}` as any)}
+                  >
+                    <View style={styles.newsCardInner}>
+                      <View style={styles.newsThumb}>
+                        <Ionicons name="newspaper-outline" size={24} color={Colors.gold} />
+                      </View>
+                      <View style={styles.newsContent}>
+                        <Badge label={article.category.replace('_', ' ')} variant="gold" small />
+                        <Text style={styles.newsTitle} numberOfLines={2}>
+                          {article.title}
+                        </Text>
+                        <Text style={styles.newsTime}>{timeAgo(article.publishedAt)}</Text>
+                      </View>
+                    </View>
+                  </TouchableOpacity>
+                ))
+            }
           </View>
 
           {/* Featured products */}

@@ -11,7 +11,8 @@ import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User, Vehicle } from '@/types';
 import { MOCK_USER } from '@/data/mockData';
-import { signInWithApple, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/auth/helpers';
+import { signInWithEmail, signInWithApple, signInWithGoogle, signOut as supabaseSignOut } from '@/lib/auth/helpers';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 
 // Mock OTP code for MVP — replace with real SMS in production
 const MOCK_OTP = '123456';
@@ -46,17 +47,44 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   requestOtp: async (phone: string) => {
     set({ isLoading: true, pendingPhone: phone });
-    // FUTURE: await supabase.auth.signInWithOtp({ phone })
-    // Simulate network delay
-    await new Promise((r) => setTimeout(r, 1000));
+    if (isSupabaseConfigured) {
+      // REQUIRES: Supabase Auth → Phone provider enabled with Twilio credentials
+      try {
+        const { error } = await supabase.auth.signInWithOtp({ phone });
+        if (error) console.log('[requestOtp] Supabase error (falling back to mock):', error.message);
+      } catch (e: any) {
+        console.log('[requestOtp] error:', e?.message);
+      }
+    } else {
+      await new Promise((r) => setTimeout(r, 1000));
+      console.log(`[MVP] OTP sent to ${phone}. Use code: ${MOCK_OTP}`);
+    }
     set({ isLoading: false });
-    console.log(`[MVP] OTP sent to ${phone}. Use code: ${MOCK_OTP}`);
   },
 
   verifyOtp: async (code: string) => {
     set({ isLoading: true });
-    await new Promise((r) => setTimeout(r, 800));
 
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase.auth.verifyOtp({
+          phone: get().pendingPhone,
+          token: code,
+          type: 'sms',
+        });
+        if (!error && data.user) {
+          const user = { ...MOCK_USER, id: data.user.id, phone: get().pendingPhone };
+          await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
+          set({ user, isGuest: false, isAuthenticated: true, isLoading: false });
+          return true;
+        }
+      } catch {
+        // Fall through to mock for dev (Twilio not configured)
+      }
+    }
+
+    // Mock fallback: dev mode or Twilio not yet configured
+    await new Promise((r) => setTimeout(r, 800));
     if (code === MOCK_OTP) {
       const user = { ...MOCK_USER, phone: get().pendingPhone };
       await AsyncStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({ user, isGuest: false }));
@@ -71,7 +99,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   loginWithEmail: async (email: string, password: string) => {
     set({ isLoading: true });
     try {
-      const { signInWithEmail } = await import('@/lib/auth/helpers');
       await signInWithEmail(email, password);
       // AuthProvider.onAuthStateChange → syncSupabaseUserToStore handles hydration
       set({ isLoading: false });

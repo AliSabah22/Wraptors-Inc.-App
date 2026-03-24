@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/Badge';
 import { GoldDivider } from '@/components/ui/GoldDivider';
 import { MOCK_SERVICES } from '@/data/mockData';
 import { ServiceItem, ServiceCategory } from '@/types';
+import { useServices } from '@/hooks/useServices';
 
 const CATEGORY_FILTERS: { label: string; value: ServiceCategory | 'all' }[] = [
   { label: 'All', value: 'all' },
@@ -34,10 +35,13 @@ export default function ServicesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState<ServiceCategory | 'all'>('all');
+  const { services: liveServices, isLoading } = useServices();
 
+  // Use real data when available; fall back to mock until confirmed loaded
+  const source = liveServices.length > 0 ? liveServices : MOCK_SERVICES;
   const filtered = activeFilter === 'all'
-    ? MOCK_SERVICES
-    : MOCK_SERVICES.filter((s) => s.category === activeFilter);
+    ? source
+    : source.filter((s) => s.category === activeFilter);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -67,6 +71,11 @@ export default function ServicesScreen() {
           </TouchableOpacity>
         ))}
       </ScrollView>
+
+      {/* Loading indicator */}
+      {isLoading && (
+        <ActivityIndicator size="small" color={Colors.gold} style={styles.loader} />
+      )}
 
       {/* Services list */}
       <FlatList
@@ -160,6 +169,9 @@ const styles = StyleSheet.create({
   filterChipTextActive: {
     color: Colors.gold,
     fontWeight: Typography.semibold,
+  },
+  loader: {
+    marginVertical: Spacing.sm,
   },
   listContent: {
     padding: Spacing.base,
