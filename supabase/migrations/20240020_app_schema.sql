@@ -1,5 +1,5 @@
 -- App Schema — all tables needed by the customer app
--- Run this in Supabase SQL Editor (Dashboard → SQL Editor → New Query)
+-- Idempotent: safe to run multiple times (IF NOT EXISTS + DO blocks for policies)
 
 -- ─── Vehicles ────────────────────────────────────────────────────────────────
 
@@ -18,17 +18,17 @@ CREATE TABLE IF NOT EXISTS public.vehicles (
 
 ALTER TABLE public.vehicles ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Customers view own vehicles"
-  ON public.vehicles FOR SELECT
-  USING (auth.uid() = customer_id);
-
-CREATE POLICY "Customers insert own vehicles"
-  ON public.vehicles FOR INSERT
-  WITH CHECK (auth.uid() = customer_id);
-
-CREATE POLICY "Customers update own vehicles"
-  ON public.vehicles FOR UPDATE
-  USING (auth.uid() = customer_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='vehicles' AND policyname='Customers view own vehicles') THEN
+    CREATE POLICY "Customers view own vehicles" ON public.vehicles FOR SELECT USING (auth.uid() = customer_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='vehicles' AND policyname='Customers insert own vehicles') THEN
+    CREATE POLICY "Customers insert own vehicles" ON public.vehicles FOR INSERT WITH CHECK (auth.uid() = customer_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='vehicles' AND policyname='Customers update own vehicles') THEN
+    CREATE POLICY "Customers update own vehicles" ON public.vehicles FOR UPDATE USING (auth.uid() = customer_id);
+  END IF;
+END $$;
 
 -- ─── Service Jobs ─────────────────────────────────────────────────────────────
 
@@ -56,9 +56,11 @@ CREATE TABLE IF NOT EXISTS public.service_jobs (
 
 ALTER TABLE public.service_jobs ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Customers view own jobs"
-  ON public.service_jobs FOR SELECT
-  USING (auth.uid() = customer_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='service_jobs' AND policyname='Customers view own jobs') THEN
+    CREATE POLICY "Customers view own jobs" ON public.service_jobs FOR SELECT USING (auth.uid() = customer_id);
+  END IF;
+END $$;
 
 -- ─── Quote Requests ───────────────────────────────────────────────────────────
 
@@ -82,13 +84,14 @@ CREATE TABLE IF NOT EXISTS public.quote_requests (
 
 ALTER TABLE public.quote_requests ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Customers view own quotes"
-  ON public.quote_requests FOR SELECT
-  USING (auth.uid() = customer_id);
-
-CREATE POLICY "Anyone can submit a quote"
-  ON public.quote_requests FOR INSERT
-  WITH CHECK (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='quote_requests' AND policyname='Customers view own quotes') THEN
+    CREATE POLICY "Customers view own quotes" ON public.quote_requests FOR SELECT USING (auth.uid() = customer_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='quote_requests' AND policyname='Anyone can submit a quote') THEN
+    CREATE POLICY "Anyone can submit a quote" ON public.quote_requests FOR INSERT WITH CHECK (true);
+  END IF;
+END $$;
 
 -- ─── Campaigns (Offers) ───────────────────────────────────────────────────────
 
@@ -111,9 +114,11 @@ CREATE TABLE IF NOT EXISTS public.campaigns (
 
 ALTER TABLE public.campaigns ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "All authenticated users view active campaigns"
-  ON public.campaigns FOR SELECT
-  USING (status = 'active');
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='campaigns' AND policyname='All authenticated users view active campaigns') THEN
+    CREATE POLICY "All authenticated users view active campaigns" ON public.campaigns FOR SELECT USING (status = 'active');
+  END IF;
+END $$;
 
 -- ─── App Notifications ────────────────────────────────────────────────────────
 
@@ -132,13 +137,14 @@ CREATE TABLE IF NOT EXISTS public.app_notifications (
 
 ALTER TABLE public.app_notifications ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Customers view own notifications"
-  ON public.app_notifications FOR SELECT
-  USING (auth.uid() = customer_id);
-
-CREATE POLICY "Customers update own notifications"
-  ON public.app_notifications FOR UPDATE
-  USING (auth.uid() = customer_id);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_notifications' AND policyname='Customers view own notifications') THEN
+    CREATE POLICY "Customers view own notifications" ON public.app_notifications FOR SELECT USING (auth.uid() = customer_id);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='app_notifications' AND policyname='Customers update own notifications') THEN
+    CREATE POLICY "Customers update own notifications" ON public.app_notifications FOR UPDATE USING (auth.uid() = customer_id);
+  END IF;
+END $$;
 
 -- ─── Services Catalog ─────────────────────────────────────────────────────────
 
@@ -159,9 +165,11 @@ CREATE TABLE IF NOT EXISTS public.services (
 
 ALTER TABLE public.services ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Anyone can view active services"
-  ON public.services FOR SELECT
-  USING (is_active = TRUE);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename='services' AND policyname='Anyone can view active services') THEN
+    CREATE POLICY "Anyone can view active services" ON public.services FOR SELECT USING (is_active = TRUE);
+  END IF;
+END $$;
 
 -- ─── Updated_at trigger for service_jobs ──────────────────────────────────────
 

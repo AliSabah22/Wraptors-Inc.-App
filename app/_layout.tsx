@@ -73,6 +73,7 @@ export default function RootLayout() {
           <Stack.Screen name="contact/index" />
           <Stack.Screen name="staff/index" />
           <Stack.Screen name="notifications/index" />
+          <Stack.Screen name="verify" options={{ headerShown: true, title: 'Connection Verify', headerStyle: { backgroundColor: Colors.background }, headerTintColor: Colors.gold }} />
         </Stack>
         <NotificationToast />
       </SafeAreaProvider>

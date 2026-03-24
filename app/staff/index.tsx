@@ -81,9 +81,9 @@ export default function StaffDashboard() {
         title="Staff Dashboard"
         subtitle="Internal Service Management"
         rightAction={
-          <View style={styles.devBadge}>
-            <Text style={styles.devBadgeText}>DEV</Text>
-          </View>
+          <TouchableOpacity onPress={() => router.push('/verify' as any)} style={styles.devBadge}>
+            <Text style={styles.devBadgeText}>VERIFY</Text>
+          </TouchableOpacity>
         }
       />
 
